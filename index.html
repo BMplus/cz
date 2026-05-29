@@ -1,48 +1,81 @@
-const url = 'katalog.pdf';
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Katalog</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: calc(100vh - 60px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #flipbook {
+            width: 90%;
+            height: 90%;
+        }
+        .page {
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        #toolbar {
+            height: 60px;
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        .btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #555;
+        }
+        .btn-download {
+            background-color: #007637; /* Firemní zelená */
+        }
+        .btn-download:hover {
+            background-color: #009c49;
+        }
+    </style>
+</head>
+<body>
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+    <div id="canvas-container">
+        <div id="flipbook"></div>
+    </div>
 
-let pdfDoc = null,
-    flipbook = $('#flipbook');
+    <div id="toolbar">
+        <button class="btn" onclick="$('#flipbook').turn('previous')">◀ Předchozí</button>
+        <button class="btn" onclick="$('#flipbook').turn('next')">Následující ▶</button>
+        <a href="katalog.pdf" download="katalog.pdf" class="btn btn-download">⬇ Stáhnout PDF zdarma</a>
+    </div>
 
-pdfjsLib.getDocument(url).promise.then(pdf => {
-    pdfDoc = pdf;
-    const numPages = pdf.numPages;
-    let loadedPages = 0;
-
-    for (let i = 1; i <= numPages; i++) {
-        const pageDiv = $('<div class="page"></div>');
-        const canvas = document.createElement('canvas');
-        pageDiv.append(canvas);
-        flipbook.append(pageDiv);
-
-        pdf.getPage(i).then(page => {
-            const viewport = page.getViewport({ scale: 1.5 });
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            const renderContext = {
-                canvasContext: context,
-                viewport: viewport
-            };
-            
-            page.render(renderContext).promise.then(() => {
-                loadedPages++;
-                if (loadedPages === numPages) {
-                    flipbook.turn({
-                        width: flipbook.width(),
-                        height: flipbook.height(),
-                        elevation: 50,
-                        gradients: true,
-                        autoCenter: true
-                    });
-                }
-            });
-        });
-    }
-});
-
-$(window).resize(function() {
-    flipbook.turn('size', flipbook.width(), flipbook.height());
-});
+    <script src="script.js"></script>
+</body>
+</html>
