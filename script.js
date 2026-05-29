@@ -6,8 +6,9 @@ let pdfDoc = null,
     flipbook = $('#flipbook');
 
 function resizeBook(initialViewport) {
-    const containerWidth = $('#canvas-container').width() * 0.95;
-    const containerHeight = $('#canvas-container').height() * 0.90;
+    // Zvětšeno na 98% šířky a 98% výšky dostupného prostoru pro maximální roztažení
+    const containerWidth = $('#canvas-container').width() * 0.98;
+    const containerHeight = $('#canvas-container').height() * 0.98;
     const pageRatio = initialViewport.width / initialViewport.height;
     
     let bookHeight = containerHeight;
@@ -25,7 +26,6 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
     pdfDoc = pdf;
     const numPages = pdf.numPages;
     
-    // Nastavíme tlačítko "Konec", aby vědělo, kolik stránek PDF reálně má
     $('#btn-end').attr('onclick', `$('#flipbook').turn('page', ${numPages})`);
     
     pdf.getPage(1).then(firstPage => {
@@ -45,7 +45,8 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
             pdf.getPage(i).then(page => {
                 const pageTargetWidth = dimensions.width / 2;
                 const pageViewport = page.getViewport({ scale: 1.0 });
-                const scale = pageTargetWidth / pageViewport.width;
+                // Zvýšíme kvalitu renderování (scale) přímo pro plátno, aby byl text ostrý i při maximálním zvětšení
+                const scale = (pageTargetWidth / pageViewport.width) * 1.5; 
                 const viewport = page.getViewport({ scale: scale });
                 
                 const context = canvas.getContext('2d');
@@ -68,15 +69,13 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
                             autoCenter: true
                         });
                         
-                        // --- NOVINKA: DETEKCE KOLEČKA MYŠI ---
                         window.addEventListener('wheel', function(e) {
                             if (e.deltaY > 0) {
-                                flipbook.turn('next'); // Kolečko dolů = další stránka
+                                flipbook.turn('next');
                             } else if (e.deltaY < 0) {
-                                flipbook.turn('previous'); // Kolečko nahoru = předchozí stránka
+                                flipbook.turn('previous');
                             }
                         }, { passive: true });
-                        // -------------------------------------
                     }
                 });
             });
