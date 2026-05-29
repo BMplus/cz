@@ -98,7 +98,7 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
                             height: dimensions.height,
                             elevation: 60,
                             gradients: true,
-                            duration: 1500, // Plynulá animace otočení
+                            duration: 1200, // Plynulá animace otočení
                             shadows: true,  // Aktivace stínů
                             autoCenter: true,
                             when: {
