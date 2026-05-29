@@ -5,11 +5,15 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 let pdfDoc = null,
     flipbook = $('#flipbook');
 
+// Hned na začátku flipbook skryjeme, aby se nezobrazil roztažený, než se dopočítá poměr stran
+flipbook.css('opacity', '0');
+
 function resizeBook(initialViewport) {
-    // Necháme drobnou rezervu (96 %), aby vynikl ten hezký stín okolo celé knihy
     const containerWidth = $('#canvas-container').width() * 0.96;
     const containerHeight = $('#canvas-container').height() * 0.96;
-    const pageRatio = initialViewport.width / initialViewport.height;
+    
+    // Pokud ještě nemáme viewport z PDF, použijeme bezpečný výchozí poměr stran (cca A4 na výšku)
+    const pageRatio = initialViewport ? (initialViewport.width / initialViewport.height) : 0.707;
     
     let bookHeight = containerHeight;
     let bookWidth = bookHeight * pageRatio * 2;
@@ -45,6 +49,10 @@ function executeSearch() {
     }
 }
 
+// Nastavíme přibližné rozměry hned při startu, aby kontejnery držely správný tvar
+const initialDims = resizeBook(null);
+flipbook.css({ width: initialDims.width, height: initialDims.height });
+
 pdfjsLib.getDocument(url).promise.then(pdf => {
     pdfDoc = pdf;
     const numPages = pdf.numPages;
@@ -55,6 +63,7 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
         const initialViewport = firstPage.getViewport({ scale: 1.0 });
         const dimensions = resizeBook(initialViewport);
         
+        // Přepočítáme na přesné rozměry podle reálného PDF
         flipbook.css({ width: dimensions.width, height: dimensions.height });
 
         let renderedPages = 0;
@@ -83,16 +92,35 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
                 page.render(renderContext).promise.then(() => {
                     renderedPages++;
                     if (renderedPages === numPages) {
-                        // --- INICIALIZACE S PROFI STÍNY ---
+                        // --- INICIALIZACE S PROFI STÍNY A PROPOJENÍM URL ---
                         flipbook.turn({
                             width: dimensions.width,
                             height: dimensions.height,
                             elevation: 60,
                             gradients: true,
-                            duration: 1500, // Mírně hladší a plynulejší animace otočení
-                            shadows: true,  // Aktivace stínů pod rukou / listem
-                            autoCenter: true
+                            duration: 1500, // Plynulá animace otočení
+                            shadows: true,  // Aktivace stínů
+                            autoCenter: true,
+                            when: {
+                                turning: function(event, page, pageObj) {
+                                    // Mění hash v adresním řádku při listování
+                                    window.location.hash = "page/" + page;
+                                }
+                            }
                         });
+                        
+                        // Načtení konkrétní stránky přímo z URL adresy při otevření webu
+                        const hash = window.location.hash;
+                        if (hash && hash.indexOf("page/") !== -1) {
+                            const startPage = parseInt(hash.split("/")[1], 10);
+                            if (!isNaN(startPage)) {
+                                flipbook.turn("page", startPage);
+                            }
+                        }
+                        
+                        // Jakmile je vše načteno a na svém místě, plynule katalog odhalíme
+                        flipbook.css('transition', 'opacity 0.3s ease');
+                        flipbook.css('opacity', '1');
                         
                         window.addEventListener('wheel', function(e) {
                             if (e.deltaY > 0) {
