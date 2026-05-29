@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Catalog</title>
+    <title>Online Katalog</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
@@ -11,7 +11,7 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #1c1c1c;
+            background-color: #1c1c1c; /* Mírně teplejší tmavá na pozadí */
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
@@ -22,6 +22,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            /* Jemný odlesk na pozadí za knihou jako u Heyzine */
             background: radial-gradient(circle, #2d2d2d 0%, #141414 100%);
         }
         #flipbook {
@@ -29,18 +30,26 @@
             height: 100%;
         }
         
+        /* --- EFEKTY STRÁNEK JAKO HEYZINE --- */
         .page {
             background: white;
             overflow: hidden;
         }
         
-        .even { border-radius: 6px 0 0 6px; }
-        .odd { border-radius: 0 6px 6px 0; }
+        /* Zaoblení vnějších rohů (levá stránka vlevo, pravá vpravo) */
+        .even { 
+            border-radius: 6px 0 0 6px; 
+        }
+        .odd { 
+            border-radius: 0 6px 6px 0; 
+        }
 
+        /* Stín uprostřed vazby, který dodá knihovní hloubku */
         .even::after {
             content: "";
             position: absolute;
             top: 0; right: 0; bottom: 0; width: 30px;
+            background: -webkit-linear-gradient(left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
             background: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
             z-index: 2;
         }
@@ -48,6 +57,7 @@
             content: "";
             position: absolute;
             top: 0; left: 0; bottom: 0; width: 30px;
+            background: -webkit-linear-gradient(right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
             background: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
             z-index: 2;
         }
@@ -58,6 +68,7 @@
             display: block;
         }
         
+        /* Vylepšené boční šipky */
         .nav-arrow {
             position: absolute;
             top: 0;
@@ -81,6 +92,7 @@
         .arrow-left { left: 0; }
         .arrow-right { right: 0; }
 
+        /* Menu v rohu */
         #top-menu {
             position: absolute;
             top: 15px;
@@ -150,6 +162,18 @@
             padding: 0 8px;
             font-size: 13px;
         }
+        .lang-btn {
+            padding: 0; 
+            overflow: hidden; 
+            height: 36px; 
+            display: inline-flex; 
+            width: calc(33.33% - 2.6px); 
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        .lang-btn:hover {
+            opacity: 1 !important;
+        }
     </style>
 </head>
 <body>
@@ -162,26 +186,26 @@
 
     <div id="top-menu">
         <div class="language-switcher" style="padding: 0; display: block; width: 100%;">
-            <a href="https://ADRESA-CESKEHO-WEBU.github.io" class="lang-btn" style="padding: 0; overflow: hidden; height: 36px; display: inline-flex; width: calc(33.33% - 2.6px); margin: 0; opacity: 0.6;">
-                <img src="image_3.png" alt="Czech" style="height: 100%; width: auto; object-fit: cover; object-position: left; border-radius: 4px;">
+            <a href="#" class="lang-btn" style="outline: 1px solid rgba(255,255,255,0.4);">
+                <img src="https://i.ibb.co/image_3.png" alt="Zvolit jazyk Česko" style="height: 100%; width: auto; object-fit: cover; object-position: left; border-radius: 4px;">
             </a>
-            <a href="#" class="lang-btn" style="padding: 0; overflow: hidden; height: 36px; display: inline-flex; width: calc(33.33% - 2.6px); margin: 0 4px; outline: 1px solid rgba(255,255,255,0.4);">
-                <img src="image_3.png" alt="English" style="height: 100%; width: auto; object-fit: cover; object-position: center; border-radius: 4px;">
+            <a href="https://bmplus.github.io/katalog-en/" class="lang-btn" style="margin: 0 4px; opacity: 0.6;">
+                <img src="https://i.ibb.co/image_3.png" alt="Select language GB" style="height: 100%; width: auto; object-fit: cover; object-position: center; border-radius: 4px;">
             </a>
-            <a href="https://ADRESA-NEMECKEHO-WEBU.github.io" class="lang-btn" style="padding: 0; overflow: hidden; height: 36px; display: inline-flex; width: calc(33.33% - 2.6px); margin: 0; opacity: 0.6;">
-                <img src="image_3.png" alt="German" style="height: 100%; width: auto; object-fit: cover; object-position: right; border-radius: 4px;">
+            <a href="https://bmplus.github.io/katalog-de/" class="lang-btn" style="opacity: 0.6;">
+                <img src="https://i.ibb.co/image_3.png" alt="Sprache wählen DE" style="height: 100%; width: auto; object-fit: cover; object-position: right; border-radius: 4px;">
             </a>
         </div>
-
+        
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="Search catalog..." onkeypress="if(event.key === 'Enter') executeSearch()">
+            <input type="text" id="search-input" placeholder="Hledat v katalogu..." onkeypress="if(event.key === 'Enter') executeSearch()">
             <button class="search-btn" onclick="executeSearch()">🔍</button>
         </div>
         <div class="menu-row">
-            <button class="btn-mini" onclick="$('#flipbook').turn('page', 1)">⏮ First</button>
-            <button class="btn-mini" id="btn-end">Last ⏭</button>
+            <button class="btn-mini" onclick="$('#flipbook').turn('page', 1)">⏮ Začátek</button>
+            <button class="btn-mini" id="btn-end">Konec ⏭</button>
         </div>
-        <a href="BMplus_katalog_2024_blok_en.pdf" download="BMplus_katalog_2024_blok_en.pdf" class="btn-mini btn-full">⬇ Download PDF</a>
+        <a href="BMplus_katalog_2024_blok_CZ.pdf" download="BMplus_katalog_2024_blok_CZ.pdf" class="btn-mini btn-full">⬇ Stáhnout PDF</a>
     </div>
 
     <script src="script.js"></script>
