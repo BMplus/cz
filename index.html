@@ -40,13 +40,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 12px; /* Mírně zúžený prostor, aby se tam tlačítka hezky vešla */
         }
         .btn {
             background-color: #333;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 16px;
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
@@ -57,7 +57,7 @@
             background-color: #555;
         }
         .btn-download {
-            background-color: #007637; /* Firemní zelená */
+            background-color: #007637;
         }
         .btn-download:hover {
             background-color: #009c49;
@@ -71,8 +71,10 @@
     </div>
 
     <div id="toolbar">
+        <button class="btn" onclick="$('#flipbook').turn('page', 1)">⏮ Začátek</button>
         <button class="btn" onclick="$('#flipbook').turn('previous')">◀ Předchozí</button>
         <button class="btn" onclick="$('#flipbook').turn('next')">Následující ▶</button>
+        <button class="btn" id="btn-end">Konec ⏭</button>
         <a href="katalog.pdf" download="katalog.pdf" class="btn btn-download">⬇ Stáhnout PDF zdarma</a>
     </div>
 
