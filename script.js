@@ -6,7 +6,6 @@ let pdfDoc = null,
     flipbook = $('#flipbook');
 
 function resizeBook(initialViewport) {
-    // Využijeme prostor na maximum (99 % šířky i výšky celého okna), protože spodní lišta už nepřekáží
     const containerWidth = $('#canvas-container').width() * 0.99;
     const containerHeight = $('#canvas-container').height() * 0.99;
     const pageRatio = initialViewport.width / initialViewport.height;
@@ -21,6 +20,37 @@ function resizeBook(initialViewport) {
     
     return { width: bookWidth, height: bookHeight, ratio: pageRatio };
 }
+
+// --- NOVINKA: FUNKCE PRO VYHLEDÁVÁNÍ TEXTU ---
+function executeSearch() {
+    const query = $('#search-input').val().toLowerCase().trim();
+    if (!query || !pdfDoc) return;
+
+    const numPages = pdfDoc.numPages;
+    let found = false;
+
+    // Projdeme text na všech stránkách postupně
+    for (let i = 1; i <= numPages; i++) {
+        pdfDoc.getPage(i).then(page => {
+            page.getTextContent().then(textContent => {
+                // Spojíme všechny textové fragmenty ze stránky do jednoho řetězce
+                const pageText = textContent.items.map(item => item.str).join(' ').toLowerCase();
+                
+                // Pokud text obsahuje hledané slovo a ještě jsme nic nenašli, skočíme na danou stránku
+                if (pageText.includes(query) && !found) {
+                    found = true;
+                    $('#flipbook').turn('page', i);
+                    
+                    // Malý vizuální efekt - bliknutí vyhledávače zeleně pro potvrzení úspěchu
+                    $('.search-box').css('background-color', 'rgba(0, 118, 55, 0.85)');
+                    setTimeout(() => $('.search-box').css('background-color', 'rgba(51, 51, 51, 0.85)'), 500);
+                }
+            });
+        });
+        if (found) break;
+    }
+}
+// ----------------------------------------------
 
 pdfjsLib.getDocument(url).promise.then(pdf => {
     pdfDoc = pdf;
