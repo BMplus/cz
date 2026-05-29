@@ -8,15 +8,11 @@ let pdfDoc = null,
 function resizeBook(initialViewport) {
     const containerWidth = $('#canvas-container').width() * 0.95;
     const containerHeight = $('#canvas-container').height() * 0.90;
-    
-    // Přirozený poměr stran jedné stránky z PDF (šířka / výška)
     const pageRatio = initialViewport.width / initialViewport.height;
     
-    // Spočítáme rozměry pro dvojstranu
     let bookHeight = containerHeight;
     let bookWidth = bookHeight * pageRatio * 2;
     
-    // Pokud by to bylo moc široké, přizpůsobíme to podle šířky obrazovky
     if (bookWidth > containerWidth) {
         bookWidth = containerWidth;
         bookHeight = bookWidth / (pageRatio * 2);
@@ -29,17 +25,17 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
     pdfDoc = pdf;
     const numPages = pdf.numPages;
     
-    // Nejdříve načteme první stránku, abychom znali přesný formát (A4 na výšku)
+    // Nastavíme tlačítko "Konec", aby vědělo, kolik stránek PDF reálně má
+    $('#btn-end').attr('onclick', `$('#flipbook').turn('page', ${numPages})`);
+    
     pdf.getPage(1).then(firstPage => {
         const initialViewport = firstPage.getViewport({ scale: 1.0 });
         const dimensions = resizeBook(initialViewport);
         
-        // Nastavíme natvrdo rozměry kontejneru ještě PŘEDTÍM, než Turn.js vůbec vznikne
         flipbook.css({ width: dimensions.width, height: dimensions.height });
 
         let renderedPages = 0;
 
-        // Vytvoříme plátna pro všechny stránky
         for (let i = 1; i <= numPages; i++) {
             const pageDiv = $('<div class="page"></div>');
             const canvas = document.createElement('canvas');
@@ -63,7 +59,6 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
                 
                 page.render(renderContext).promise.then(() => {
                     renderedPages++;
-                    // Jakmile jsou všechny stránky připravené v perfektním poměru, zapneme Turn.js
                     if (renderedPages === numPages) {
                         flipbook.turn({
                             width: dimensions.width,
@@ -72,6 +67,16 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
                             gradients: true,
                             autoCenter: true
                         });
+                        
+                        // --- NOVINKA: DETEKCE KOLEČKA MYŠI ---
+                        window.addEventListener('wheel', function(e) {
+                            if (e.deltaY > 0) {
+                                flipbook.turn('next'); // Kolečko dolů = další stránka
+                            } else if (e.deltaY < 0) {
+                                flipbook.turn('previous'); // Kolečko nahoru = předchozí stránka
+                            }
+                        }, { passive: true });
+                        // -------------------------------------
                     }
                 });
             });
@@ -79,7 +84,6 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
     });
 });
 
-// Správné chování při změně velikosti okna prohlížeče
 $(window).resize(function() {
     if (pdfDoc) {
         pdfDoc.getPage(1).then(page => {
