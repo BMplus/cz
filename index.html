@@ -105,6 +105,39 @@
             gap: 6px;
             width: 180px;
         }
+        
+        /* --- NOVÝ JAZYKOVÝ PŘEPÍNAČ --- */
+        .language-switcher {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+        .lang-btn {
+            background-color: rgba(40, 40, 40, 0.85);
+            color: rgba(255, 255, 255, 0.5);
+            border: none;
+            padding: 6px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+            flex: 1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .lang-btn:hover {
+            background-color: rgba(60, 60, 60, 0.95);
+            color: #fff;
+        }
+        .lang-btn.active {
+            background-color: rgba(80, 80, 80, 0.95);
+            color: #fff;
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.2);
+        }
+
         .menu-row {
             display: flex;
             gap: 6px;
@@ -175,6 +208,12 @@
     </div>
 
     <div id="top-menu">
+        <div class="language-switcher">
+            <a href="#" class="lang-btn active">🇨🇿 CZ</a>
+            <a href="https://TVOJE-ANGLICKA-URL.github.io" class="lang-btn">🇬🇧 EN</a>
+            <a href="https://TVOJE-NEMECKA-URL.github.io" class="lang-btn">🇩🇪 DE</a>
+        </div>
+        
         <div class="search-box">
             <input type="text" id="search-input" placeholder="Hledat v katalogu..." onkeypress="if(event.key === 'Enter') executeSearch()">
             <button class="search-btn" onclick="executeSearch()">🔍</button>
