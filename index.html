@@ -15,7 +15,6 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
-        /* Kontejner teď využívá celých 100 % výšky obrazovky */
         #canvas-container {
             width: 100vw;
             height: 100vh;
@@ -36,7 +35,6 @@
             width: 100%;
             height: 100%;
         }
-        /* --- NOVÉ BOČNÍ ŠIPKY --- */
         .nav-arrow {
             position: absolute;
             top: 0;
@@ -60,34 +58,48 @@
         .arrow-left { left: 0; }
         .arrow-right { right: 0; }
 
-        /* --- MINI MENU V PRAVÉM HORNÍM ROHU --- */
+        /* --- UPRAVENÉ COMPAKTNÍ MENU DO BLOKU --- */
         #top-menu {
             position: absolute;
             top: 15px;
             right: 15px;
             z-index: 20;
             display: flex;
-            gap: 8px;
+            flex-direction: column; /* Tlačítka se řadí pod sebe */
+            gap: 6px;
+            width: 180px; /* Fixní šířka, aby kostka držela tvar */
+        }
+        /* Řádek pro první dvě tlačítka */
+        .menu-row {
+            display: flex;
+            gap: 6px;
+            width: 100%;
         }
         .btn-mini {
-            background-color: rgba(51, 51, 51, 0.8);
+            background-color: rgba(51, 51, 51, 0.85);
             color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 8px 0;
             border-radius: 4px;
             cursor: pointer;
             text-decoration: none;
             font-size: 13px;
+            text-align: center;
             transition: background 0.2s;
-            backdrop-filter: blur(5px); /* Moderní efekt skla */
+            backdrop-filter: blur(5px);
+            flex: 1; /* Obě tlačítka v řádku budou stejně široká */
         }
         .btn-mini:hover {
-            background-color: rgba(85, 85, 85, 0.9);
+            background-color: rgba(85, 85, 85, 0.95);
         }
-        .btn-download {
+        /* Spodní široké tlačítko pro download */
+        .btn-full {
+            display: block;
+            width: 100%;
+            box-sizing: border-color;
             background-color: rgba(0, 118, 55, 0.9);
         }
-        .btn-download:hover {
+        .btn-full:hover {
             background-color: rgba(0, 156, 73, 1);
         }
     </style>
@@ -96,16 +108,16 @@
 
     <div id="canvas-container">
         <button class="nav-arrow arrow-left" onclick="$('#flipbook').turn('previous')">◀</button>
-        
         <div id="flipbook"></div>
-        
         <button class="nav-arrow arrow-right" onclick="$('#flipbook').turn('next')">▶</button>
     </div>
 
     <div id="top-menu">
-        <button class="btn-mini" onclick="$('#flipbook').turn('page', 1)">⏮ Začátek</button>
-        <button class="btn-mini" id="btn-end">Konec ⏭</button>
-        <a href="katalog.pdf" download="katalog.pdf" class="btn-mini btn-download">⬇ Stáhnout PDF</a>
+        <div class="menu-row">
+            <button class="btn-mini" onclick="$('#flipbook').turn('page', 1)">⏮ Začátek</button>
+            <button class="btn-mini" id="btn-end">Konec ⏭</button>
+        </div>
+        <a href="katalog.pdf" download="katalog.pdf" class="btn-mini btn-full">⬇ Stáhnout PDF</a>
     </div>
 
     <script src="script.js"></script>
