@@ -58,18 +58,17 @@
         .arrow-left { left: 0; }
         .arrow-right { right: 0; }
 
-        /* --- UPRAVENÉ COMPAKTNÍ MENU DO BLOKU --- */
+        /* --- ROZŠÍŘENÉ MENU S VYHLEDÁVÁNÍM --- */
         #top-menu {
             position: absolute;
             top: 15px;
             right: 15px;
             z-index: 20;
             display: flex;
-            flex-direction: column; /* Tlačítka se řadí pod sebe */
+            flex-direction: column;
             gap: 6px;
-            width: 180px; /* Fixní šířka, aby kostka držela tvar */
+            width: 180px;
         }
-        /* Řádek pro první dvě tlačítka */
         .menu-row {
             display: flex;
             gap: 6px;
@@ -87,20 +86,50 @@
             text-align: center;
             transition: background 0.2s;
             backdrop-filter: blur(5px);
-            flex: 1; /* Obě tlačítka v řádku budou stejně široká */
+            flex: 1;
         }
         .btn-mini:hover {
             background-color: rgba(85, 85, 85, 0.95);
         }
-        /* Spodní široké tlačítko pro download */
         .btn-full {
             display: block;
             width: 100%;
-            box-sizing: border-color;
             background-color: rgba(0, 118, 55, 0.9);
         }
         .btn-full:hover {
             background-color: rgba(0, 156, 73, 1);
+        }
+
+        /* NOVÉ STYLY PRO VYHLEDÁVACÍ POLE */
+        .search-box {
+            display: flex;
+            background-color: rgba(51, 51, 51, 0.85);
+            border-radius: 4px;
+            padding: 4px;
+            backdrop-filter: blur(5px);
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px;
+            font-size: 13px;
+            width: 100%;
+            outline: none;
+        }
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .search-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 0 8px;
+            font-size: 13px;
+        }
+        .search-btn:hover {
+            color: white;
         }
     </style>
 </head>
@@ -113,6 +142,11 @@
     </div>
 
     <div id="top-menu">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Hledat v katalogu..." onkeypress="if(event.key === 'Enter') executeSearch()">
+            <button class="search-btn" onclick="executeSearch()">🔍</button>
+        </div>
+
         <div class="menu-row">
             <button class="btn-mini" onclick="$('#flipbook').turn('page', 1)">⏮ Začátek</button>
             <button class="btn-mini" id="btn-end">Konec ⏭</button>
