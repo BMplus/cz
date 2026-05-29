@@ -89,7 +89,7 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
                             height: dimensions.height,
                             elevation: 60,
                             gradients: true,
-                            duration: 1000, // Mírně hladší a plynulejší animace otočení
+                            duration: 2000, // Mírně hladší a plynulejší animace otočení
                             shadows: true,  // Aktivace stínů pod rukou / listem
                             autoCenter: true
                         });
