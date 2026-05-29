@@ -1,123 +1,191 @@
-const url = 'katalog.pdf';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
-
-let pdfDoc = null,
-    flipbook = $('#flipbook');
-
-function resizeBook(initialViewport) {
-    const containerWidth = $('#canvas-container').width() * 0.99;
-    const containerHeight = $('#canvas-container').height() * 0.99;
-    const pageRatio = initialViewport.width / initialViewport.height;
-    
-    let bookHeight = containerHeight;
-    let bookWidth = bookHeight * pageRatio * 2;
-    
-    if (bookWidth > containerWidth) {
-        bookWidth = containerWidth;
-        bookHeight = bookWidth / (pageRatio * 2);
-    }
-    
-    return { width: bookWidth, height: bookHeight, ratio: pageRatio };
-}
-
-// --- NOVINKA: FUNKCE PRO VYHLEDÁVÁNÍ TEXTU ---
-function executeSearch() {
-    const query = $('#search-input').val().toLowerCase().trim();
-    if (!query || !pdfDoc) return;
-
-    const numPages = pdfDoc.numPages;
-    let found = false;
-
-    // Projdeme text na všech stránkách postupně
-    for (let i = 1; i <= numPages; i++) {
-        pdfDoc.getPage(i).then(page => {
-            page.getTextContent().then(textContent => {
-                // Spojíme všechny textové fragmenty ze stránky do jednoho řetězce
-                const pageText = textContent.items.map(item => item.str).join(' ').toLowerCase();
-                
-                // Pokud text obsahuje hledané slovo a ještě jsme nic nenašli, skočíme na danou stránku
-                if (pageText.includes(query) && !found) {
-                    found = true;
-                    $('#flipbook').turn('page', i);
-                    
-                    // Malý vizuální efekt - bliknutí vyhledávače zeleně pro potvrzení úspěchu
-                    $('.search-box').css('background-color', 'rgba(0, 118, 55, 0.85)');
-                    setTimeout(() => $('.search-box').css('background-color', 'rgba(51, 51, 51, 0.85)'), 500);
-                }
-            });
-        });
-        if (found) break;
-    }
-}
-// ----------------------------------------------
-
-pdfjsLib.getDocument(url).promise.then(pdf => {
-    pdfDoc = pdf;
-    const numPages = pdf.numPages;
-    
-    $('#btn-end').attr('onclick', `$('#flipbook').turn('page', ${numPages})`);
-    
-    pdf.getPage(1).then(firstPage => {
-        const initialViewport = firstPage.getViewport({ scale: 1.0 });
-        const dimensions = resizeBook(initialViewport);
-        
-        flipbook.css({ width: dimensions.width, height: dimensions.height });
-
-        let renderedPages = 0;
-
-        for (let i = 1; i <= numPages; i++) {
-            const pageDiv = $('<div class="page"></div>');
-            const canvas = document.createElement('canvas');
-            pageDiv.append(canvas);
-            flipbook.append(pageDiv);
-
-            pdf.getPage(i).then(page => {
-                const pageTargetWidth = dimensions.width / 2;
-                const pageViewport = page.getViewport({ scale: 1.0 });
-                const scale = (pageTargetWidth / pageViewport.width) * 1.5; 
-                const viewport = page.getViewport({ scale: scale });
-                
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport
-                };
-                
-                page.render(renderContext).promise.then(() => {
-                    renderedPages++;
-                    if (renderedPages === numPages) {
-                        flipbook.turn({
-                            width: dimensions.width,
-                            height: dimensions.height,
-                            elevation: 50,
-                            gradients: true,
-                            autoCenter: true
-                        });
-                        
-                        window.addEventListener('wheel', function(e) {
-                            if (e.deltaY > 0) {
-                                flipbook.turn('next');
-                            } else if (e.deltaY < 0) {
-                                flipbook.turn('previous');
-                            }
-                        }, { passive: true });
-                    }
-                });
-            });
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Katalog</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1c1c1c; /* Mírně teplejší tmavá na pozadí */
+            font-family: Arial, sans-serif;
+            overflow: hidden;
         }
-    });
-});
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            /* Jemný odlesk na pozadí za knihou jako u Heyzine */
+            background: radial-gradient(circle, #2d2d2d 0%, #141414 100%);
+        }
+        #flipbook {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* --- EFEKTY STRÁNEK JAKO HEYZINE --- */
+        .page {
+            background: white;
+            overflow: hidden;
+        }
+        
+        /* Zaoblení vnějších rohů (levá stránka vlevo, pravá vpravo) */
+        .even { 
+            border-radius: 6px 0 0 6px; 
+        }
+        .odd { 
+            border-radius: 0 6px 6px 0; 
+        }
 
-$(window).resize(function() {
-    if (pdfDoc) {
-        pdfDoc.getPage(1).then(page => {
-            const initialViewport = page.getViewport({ scale: 1.0 });
-            const dimensions = resizeBook(initialViewport);
-            flipbook.turn('size', dimensions.width, dimensions.height);
-        });
-    }
-});
+        /* Stín uprostřed vazby, který dodá knihovní hloubku */
+        .even::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; width: 30px;
+            background: gradient(linear, left top, right top, from(rgba(0,0,0,0)), to(rgba(0,0,0,0.15)));
+            background: -webkit-linear-gradient(left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
+            background: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
+            z-index: 2;
+        }
+        .odd::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; width: 30px;
+            background: gradient(linear, right top, left top, from(rgba(0,0,0,0)), to(rgba(0,0,0,0.15)));
+            background: -webkit-linear-gradient(right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
+            background: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
+            z-index: 2;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        /* Vylepšené boční šipky */
+        .nav-arrow {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 60px;
+            background: rgba(0, 0, 0, 0);
+            color: rgba(255, 255, 255, 0.3);
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-arrow:hover {
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+        }
+        .arrow-left { left: 0; }
+        .arrow-right { right: 0; }
+
+        /* Menu v rohu */
+        #top-menu {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 180px;
+        }
+        .menu-row {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+        .btn-mini {
+            background-color: rgba(40, 40, 40, 0.85);
+            color: white;
+            border: none;
+            padding: 8px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            text-align: center;
+            transition: background 0.2s;
+            backdrop-filter: blur(5px);
+            flex: 1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .btn-mini:hover {
+            background-color: rgba(70, 70, 70, 0.95);
+        }
+        .btn-full {
+            display: block;
+            width: 100%;
+            background-color: rgba(0, 118, 55, 0.9);
+        }
+        .btn-full:hover {
+            background-color: rgba(0, 156, 73, 1);
+        }
+        .search-box {
+            display: flex;
+            background-color: rgba(40, 40, 40, 0.85);
+            border-radius: 4px;
+            padding: 4px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px;
+            font-size: 13px;
+            width: 100%;
+            outline: none;
+        }
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .search-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 0 8px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <button class="nav-arrow arrow-left" onclick="$('#flipbook').turn('previous')">◀</button>
+        <div id="flipbook"></div>
+        <button class="nav-arrow arrow-right" onclick="$('#flipbook').turn('next')">▶</button>
+    </div>
+
+    <div id="top-menu">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Hledat v katalogu..." onkeypress="if(event.key === 'Enter') executeSearch()">
+            <button class="search-btn" onclick="executeSearch()">🔍</button>
+        </div>
+        <div class="menu-row">
+            <button class="btn-mini" onclick="$('#flipbook').turn('page', 1)">⏮ Začátek</button>
+            <button class="btn-mini" id="btn-end">Konec ⏭</button>
+        </div>
+        <a href="katalog.pdf" download="katalog.pdf" class="btn-mini btn-full">⬇ Stáhnout PDF</a>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
