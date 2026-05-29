@@ -6,9 +6,9 @@ let pdfDoc = null,
     flipbook = $('#flipbook');
 
 function resizeBook(initialViewport) {
-    // Zvětšeno na 98% šířky a 98% výšky dostupného prostoru pro maximální roztažení
-    const containerWidth = $('#canvas-container').width() * 0.98;
-    const containerHeight = $('#canvas-container').height() * 0.98;
+    // Využijeme prostor na maximum (99 % šířky i výšky celého okna), protože spodní lišta už nepřekáží
+    const containerWidth = $('#canvas-container').width() * 0.99;
+    const containerHeight = $('#canvas-container').height() * 0.99;
     const pageRatio = initialViewport.width / initialViewport.height;
     
     let bookHeight = containerHeight;
@@ -45,7 +45,6 @@ pdfjsLib.getDocument(url).promise.then(pdf => {
             pdf.getPage(i).then(page => {
                 const pageTargetWidth = dimensions.width / 2;
                 const pageViewport = page.getViewport({ scale: 1.0 });
-                // Zvýšíme kvalitu renderování (scale) přímo pro plátno, aby byl text ostrý i při maximálním zvětšení
                 const scale = (pageTargetWidth / pageViewport.width) * 1.5; 
                 const viewport = page.getViewport({ scale: scale });
                 
